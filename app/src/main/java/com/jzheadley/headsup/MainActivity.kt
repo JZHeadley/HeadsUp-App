@@ -16,6 +16,7 @@ import android.view.View
 import java.io.IOException
 import java.io.InputStream
 import java.util.*
+import kotlin.math.abs
 
 
 const val logt = "MainActivity"
@@ -50,18 +51,19 @@ class MainActivity : AppCompatActivity() {
         oldLocation = location
         speed.text = "Speed ${speedVal.toString()}"
         bearing.text = "Bearing ${bearingVal.toString()}"
-        Thread(
-            workerThread(
-                (
-                        "{" +
-                                "\"lat\":\"" + location.latitude + "\"," +
-                                "\"long\":\"" + location.longitude + "\"," +
-                                "\"speed\":\"" + speedVal + "\"," +
-                                "\"bearing\":\"" + bearingVal + "\"" +
-                                "}")
-            )
-        ).start()
-
+        if (speedVal != null && bearingVal != null) {
+            Thread(
+                workerThread(
+                    (
+                            "{" +
+                                    "\"lat\":" + location.latitude + "," +
+                                    "\"long\":" + location.longitude + "," +
+                                    "\"speed\":" + abs(speedVal) + "," +
+                                    "\"bearing\":" + bearingVal + "" +
+                                    "}")
+                )
+            ).start()
+        }
     }
 
     @SuppressLint("SetTextI18n")
@@ -93,14 +95,14 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        startBluetooth.setOnClickListener { it: View? ->
-            Thread(workerThread("blah")).start();
+        startBluetooth.setOnClickListener {
+            Thread(workerThread("blah")).start()
         }
 
     }
 
     fun sendBtMsg(msg2send: String) {
-        //UUID uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"); //Standard SerialPortService ID
+//        val uuid = UUID.fromString("00001101-0000-1000-8000-00805f9b34fb"); //Standard SerialPortService ID
         val uuid = UUID.fromString("94f39d29-7d6d-437d-973b-fba39e49d4ee") //Standard SerialPortService ID
         try {
             Log.d(logt, "Sending bluetooth message")
@@ -109,7 +111,6 @@ class MainActivity : AppCompatActivity() {
                 mmSocket!!.connect()
             }
 
-//msg += "\n";
             val mmOutputStream = mmSocket!!.getOutputStream()
             mmOutputStream.write(msg2send.toByteArray())
 
